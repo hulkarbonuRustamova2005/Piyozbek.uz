@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Piyozbek.uz.DataAccess;
 using Piyozbek.uz.DataAccess.Repositories;
 using Piyozbek.uz.Dtos;
+using Piyozbek.uz.Endpoints;
 using Piyozbek.uz.Maps;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,7 +14,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<ICarRepository, CarRepository>();    
-
+builder.Services.AddScoped <IDriverRepository,DriverRepository>();
 
 var app = builder.Build();
 
@@ -26,36 +27,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapPost("/api/cars/add ", async (CreateCarDto dto, ICarRepository carRepository) =>
-    {
-        var carMapper = new CarMapper();
-        var car = carMapper.CarDtoToCar(dto);
-        await carRepository.Add(car);
-        await carRepository.SaveChangesAsync();
-    })
-    .WithName(" CreateCar")
-    .WithOpenApi();
-app.MapGet("/api/cars/{id} ", async (int id, ICarRepository carRepository) =>
-    {
-        var car = await carRepository.GetById(id);
-        if (car == null)
-        {
-            return Results.NotFound();
-        }
+app.MapCarENdPoints()
+    .MapDriverENdPoints();
 
-        var carMapper = new CarMapper();
-        var carDto = carMapper.CarToCarDto(car);
-        return Results.Ok(carDto);
-    })
-    ;
-app.MapPut("/api/cars/{id}", async (int id, CreateCarDto dto, ICarRepository carRepository) =>
-{
-    var car = await carRepository.GetById(id);
-    var carMapper = new CarMapper();
-    carMapper.UpdateCarDto(car, dto);
-
-    return Results.Ok(carMapper.CarToCarDto(car));
-});
 app.Run();
 
 
