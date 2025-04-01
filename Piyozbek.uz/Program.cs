@@ -25,6 +25,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+//// ishladi 
 app.UseHttpsRedirection();
 
 app.MapCarENdPoints()
